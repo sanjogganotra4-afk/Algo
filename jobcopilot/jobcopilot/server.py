@@ -15,7 +15,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import config, db, killswitch, matcher, notify, resume_parser
+from . import config, db, killswitch, links, matcher, notify, resume_parser
 
 app = FastAPI(title="Job Application Copilot")
 
@@ -185,6 +185,18 @@ def api_put_profile(body: ProfileIn) -> dict[str, Any]:
     merged.update(body.profile)
     config.save_profile(merged)
     return merged
+
+
+@app.get("/api/links")
+def api_links(date_posted: str = "week", remote_only: bool = False) -> dict[str, Any]:
+    """Pre-filtered LinkedIn job-search links built from your profile.
+
+    Read-only URL construction — clicking a link searches LinkedIn in your own
+    browser. Nothing is logged in, scraped, or submitted.
+    """
+    profile = config.load_profile()
+    return {"links": links.build_links(profile, date_posted=date_posted,
+                                       remote_only=remote_only)}
 
 
 @app.get("/api/resume")

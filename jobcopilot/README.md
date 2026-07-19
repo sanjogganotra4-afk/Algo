@@ -77,6 +77,10 @@ macOS `.command` files.
 
 ## Using it
 
+- **Search** tab: pre-filtered LinkedIn job-search links built from your profile
+  (target titles × locations, seniority, date-posted, remote toggle). Tap one and
+  LinkedIn opens in your browser — you browse and apply yourself. It only
+  *constructs URLs*; it never logs in, scrapes, or submits.
 - **Add job** tab: paste a job description (title/company optional). The
   background worker scores it and drafts a cover letter within a few seconds.
 - **Review** tab: cards for every match at/above your threshold, best score
@@ -137,6 +141,7 @@ switch engages. Leave them blank to disable.
 | `jobcopilot/resume_parser.py` | `.docx` → structured JSON |
 | `jobcopilot/llm.py` | Claude calls + heuristic fallback |
 | `jobcopilot/matcher.py` | Score a job and persist |
+| `jobcopilot/links.py` | Build pre-filtered LinkedIn search URLs |
 | `jobcopilot/setup_wizard.py` | Interactive profile builder |
 | `jobcopilot/server.py` | FastAPI REST + WebSocket + worker |
 | `jobcopilot/orchestrator.py` | Launcher (URL + QR) |
@@ -151,6 +156,7 @@ switch engages. Leave them blank to disable.
 |--------|------|---------|
 | GET | `/api/jobs?status=` | List jobs |
 | GET | `/api/stats` | Counts, avg score, kill-switch + LLM state |
+| GET | `/api/links?date_posted=&remote_only=` | Pre-filtered LinkedIn search URLs from your profile |
 | POST | `/api/jobs` | Add a job (queues it for scoring) |
 | POST | `/api/rescore/{id}` | Re-queue a job for scoring |
 | POST | `/api/approve/{id}` | Mark applied |

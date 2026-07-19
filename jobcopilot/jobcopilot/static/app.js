@@ -210,6 +210,29 @@ async function saveProfile() {
   setTimeout(() => ($("#saveProfileBtn").textContent = "Save profile"), 1500);
 }
 
+// ── search links ────────────────────────────────────────────────────────────
+async function loadLinks() {
+  const dp = $("#datePosted").value;
+  const remote = $("#remoteOnly").checked;
+  const box = $("#searchLinks");
+  box.innerHTML = "<p class='hint'>Building links…</p>";
+  const res = await api(`/links?date_posted=${dp}&remote_only=${remote}`);
+  box.innerHTML = "";
+  const list = res.links || [];
+  if (!list.length) {
+    box.innerHTML = "<p class='empty'>Add target titles or keywords in Profile to generate searches.</p>";
+    return;
+  }
+  list.forEach((l) => {
+    const a = el("a", "searchlink");
+    a.href = l.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.innerHTML = `<span>${esc(l.label)}</span><span class="go">Search ↗</span>`;
+    box.append(a);
+  });
+}
+
 // ── websocket ───────────────────────────────────────────────────────────────
 function connect() {
   const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -237,10 +260,13 @@ document.querySelectorAll(".tabs button").forEach((btn) => {
     btn.classList.add("active");
     $("#tab-" + btn.dataset.tab).classList.add("active");
     if (btn.dataset.tab === "profile") loadProfile();
+    if (btn.dataset.tab === "search") loadLinks();
   };
 });
 
 $("#statusFilter").onchange = renderTable;
+$("#datePosted").onchange = loadLinks;
+$("#remoteOnly").onchange = loadLinks;
 $("#modalClose").onclick = closeModal;
 $("#modal").onclick = (e) => { if (e.target.id === "modal") closeModal(); };
 $("#saveProfileBtn").onclick = saveProfile;
