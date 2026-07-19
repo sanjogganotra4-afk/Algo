@@ -65,6 +65,9 @@ def _call_json(prompt: str, schema: dict[str, Any], max_tokens: int = 4000) -> O
 _RESUME_SCHEMA = {
     "type": "object",
     "properties": {
+        "full_name": {"type": "string"},
+        "current_title": {"type": "string"},
+        "suggested_titles": {"type": "array", "items": {"type": "string"}},
         "skills": {"type": "array", "items": {"type": "string"}},
         "years_experience": {"type": "number"},
         "work_history": {
@@ -84,7 +87,8 @@ _RESUME_SCHEMA = {
         "certifications": {"type": "array", "items": {"type": "string"}},
         "summary": {"type": "string"},
     },
-    "required": ["skills", "years_experience", "work_history", "education",
+    "required": ["full_name", "current_title", "suggested_titles", "skills",
+                 "years_experience", "work_history", "education",
                  "certifications", "summary"],
     "additionalProperties": False,
 }
@@ -93,9 +97,12 @@ _RESUME_SCHEMA = {
 def structure_resume(raw_text: str) -> dict[str, Any]:
     """Turn raw CV text into structured JSON (LLM if available, else heuristic)."""
     prompt = (
-        "Extract structured data from this resume. Return skills as concrete "
-        "technologies/competencies, estimate total years of professional experience, "
-        "summarise each role in one line, and write a 2-sentence professional summary.\n\n"
+        "Extract structured data from this resume so we can auto-fill a job-search "
+        "profile. Return: the candidate's full name; their current/most-recent job "
+        "title; 3-5 suggested target job titles they could realistically apply for; "
+        "skills as concrete technologies/competencies; estimated total years of "
+        "professional experience; a one-line summary per role; and a 2-sentence "
+        "professional summary.\n\n"
         f"RESUME:\n{raw_text[:12000]}"
     )
     result = _call_json(prompt, _RESUME_SCHEMA, max_tokens=3000)
@@ -103,10 +110,21 @@ def structure_resume(raw_text: str) -> dict[str, Any]:
         result["_source"] = "llm"
         return result
 
-    # Heuristic fallback: pull the most frequent capitalised / techy tokens.
+    # Heuristic fallback: pull the most frequent techy tokens; guess title/name.
     kws = _keywords(raw_text)
     common_skills = sorted(kws, key=lambda w: raw_text.lower().count(w), reverse=True)[:25]
+    lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()]
+    first_line = lines[0] if lines else ""
+    guessed_title = ""
+    for ln in lines[:5]:
+        if any(k in ln.lower() for k in ("engineer", "developer", "manager",
+                                         "designer", "analyst", "lead", "architect")):
+            guessed_title = ln
+            break
     return {
+        "full_name": first_line if len(first_line.split()) <= 5 else "",
+        "current_title": guessed_title,
+        "suggested_titles": [guessed_title] if guessed_title else [],
         "skills": common_skills,
         "years_experience": 0,
         "work_history": [],

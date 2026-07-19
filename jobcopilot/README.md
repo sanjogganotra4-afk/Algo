@@ -47,28 +47,39 @@ dashboard, with none of the ban risk.
                         iPad Safari  →  dashboard PWA
 ```
 
-## Setup
+## Setup — the two-step version
+
+No CLI wizard needed. Just start the server and upload your CV from the dashboard:
 
 ```bash
 cd jobcopilot
-
-# 1. Configure your profile + parse your CV (creates profile.json)
-./run.sh setup                 # macOS/Linux
-#  or double-click shortcuts/macos/Setup Profile.command
-#  Windows: shortcuts\windows\Setup Profile.bat
-
-# 2. Add your API key
-cp .env.template .env
-#   then edit .env and paste your ANTHROPIC_API_KEY
-#   (works without a key too — uses a keyword-overlap fallback)
-
-# 3. Start it
-./run.sh start                 # macOS/Linux
-#  or double-click shortcuts/macos/Run Copilot.command
+./run.sh start                 # macOS/Linux — or double-click shortcuts/macos/Run Copilot.command
+#                                Windows: shortcuts\windows\Run Copilot.bat
 ```
 
-`./run.sh` creates a `venv/` and installs dependencies on first run. On start it
-prints the dashboard URL and a QR code — scan it from your iPad on the same Wi-Fi.
+`./run.sh` creates a `venv/`, installs dependencies, bootstraps a default
+`profile.json`, and prints the dashboard URL + a QR code. Then, on your iPad
+(or laptop):
+
+1. Open the dashboard (scan the QR, or the LAN/Tailscale URL it prints).
+2. Go to the **Profile** tab → **Upload & parse CV** (your `.docx`). The copilot
+   parses it and **auto-fills your name, title, skills, and target roles**. That's it —
+   the Search tab immediately has pre-filtered LinkedIn links, and any job you add
+   gets scored.
+
+### Optional: better scoring with an API key
+
+Works out of the box using a local keyword-overlap heuristic (nothing leaves the
+laptop). For much better scores and real cover letters, add a Claude key:
+
+```bash
+cp .env.template .env          # then paste ANTHROPIC_API_KEY into .env
+```
+
+### Optional: CLI wizard
+
+Prefer to set everything up from the terminal instead of the dashboard? Run
+`./run.sh setup` (or `shortcuts/*/Setup Profile.*`). It's entirely optional.
 
 ### Windows
 
@@ -165,4 +176,5 @@ switch engages. Leave them blank to disable.
 | POST | `/api/kill` / `/api/resume` | Toggle the kill switch |
 | GET/PUT | `/api/profile` | Read / update profile |
 | GET | `/api/resume` | Parsed-resume summary |
+| POST | `/api/resume/upload` | Upload a `.docx` CV (multipart); parses + auto-fills profile |
 | WS | `/ws/live` | Live snapshot + events |

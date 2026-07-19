@@ -16,6 +16,11 @@
     <button id="killBtn" class="kill">STOP</button>
   </header>
 
+  <div id="onboard" class="onboard hidden">
+    👋 Welcome! Upload your CV to get started →
+    <button id="onboardGo" class="linkbtn">Go to Profile</button>
+  </div>
+
   <section class="stats" id="stats"></section>
 
   <nav class="tabs">
@@ -90,6 +95,15 @@
 
     <!-- Profile editor -->
     <section id="tab-profile" class="tab">
+      <div class="card upload">
+        <h3>Your CV</h3>
+        <p class="rationale" id="cvStatus">No CV uploaded yet.</p>
+        <input type="file" id="cvFile" accept=".docx" />
+        <button id="uploadBtn" class="primary">Upload &amp; parse CV</button>
+        <p class="hint">Upload your <b>.docx</b> CV from this device. The copilot parses it
+          and auto-fills the profile below — name, title, skills, and target roles —
+          so you're ready in one step.</p>
+      </div>
       <div class="form" id="profileForm"></div>
       <button id="saveProfileBtn" class="primary">Save profile</button>
     </section>

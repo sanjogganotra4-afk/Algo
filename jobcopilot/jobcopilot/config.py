@@ -106,6 +106,46 @@ def ensure_dirs() -> None:
     LOG_DIR.mkdir(exist_ok=True)
 
 
+def ensure_profile() -> None:
+    """Create profile.json with defaults if it doesn't exist yet.
+
+    Lets the server (and dashboard) run on a fresh machine with no CLI wizard —
+    the user fills the profile in from the iPad, or it's auto-filled from the CV.
+    """
+    if not PROFILE_PATH.exists():
+        save_profile(json.loads(json.dumps(DEFAULT_PROFILE)))
+
+
+def autofill_profile_from_resume(structured: dict[str, Any]) -> dict[str, Any]:
+    """Fill empty profile fields from a parsed resume, then save. Never overwrites
+    values the user already set."""
+    profile = load_profile()
+
+    def _empty(v: Any) -> bool:
+        return v in (None, "", [], 0)
+
+    if _empty(profile.get("full_name")) and structured.get("full_name"):
+        profile["full_name"] = structured["full_name"]
+    if _empty(profile.get("current_title")) and structured.get("current_title"):
+        profile["current_title"] = structured["current_title"]
+    if _empty(profile.get("years_experience")) and structured.get("years_experience"):
+        try:
+            profile["years_experience"] = int(structured["years_experience"])
+        except (TypeError, ValueError):
+            pass
+    if not profile.get("keywords") and structured.get("skills"):
+        profile["keywords"] = structured["skills"][:15]
+    if not profile.get("target_titles"):
+        titles = structured.get("suggested_titles") or []
+        if not titles and structured.get("current_title"):
+            titles = [structured["current_title"]]
+        profile["target_titles"] = [t for t in titles if t]
+    profile["cv_path"] = structured.get("_cv_path", profile.get("cv_path", ""))
+
+    save_profile(profile)
+    return profile
+
+
 def env_ready() -> bool:
     """True if the copilot has at least a usable config to run (profile exists)."""
     return PROFILE_PATH.exists()

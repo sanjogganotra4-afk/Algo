@@ -10,8 +10,7 @@ import asyncio
 import contextlib
 from typing import Any
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -91,6 +90,7 @@ async def scoring_worker() -> None:
 @app.on_event("startup")
 async def _startup() -> None:
     config.ensure_dirs()
+    config.ensure_profile()
     db.init_db()
     app.state.worker = asyncio.create_task(scoring_worker())
 
@@ -204,9 +204,41 @@ def api_resume_info() -> dict[str, Any]:
     r = resume_parser.load_cached()
     return {
         "source": r.get("_source", "none"),
+        "full_name": r.get("full_name", ""),
+        "current_title": r.get("current_title", ""),
         "skills": r.get("skills", []),
         "years_experience": r.get("years_experience"),
         "summary": r.get("summary", ""),
+    }
+
+
+@app.post("/api/resume/upload")
+async def api_resume_upload(file: UploadFile = File(...)) -> dict[str, Any]:
+    """Upload a .docx CV from any device (e.g. iPad), parse it, and auto-fill
+    the profile from it. This is the one-step onboarding path."""
+    name = (file.filename or "").lower()
+    if not name.endswith(".docx"):
+        raise HTTPException(status_code=400, detail="Please upload a .docx file.")
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="The uploaded file was empty.")
+
+    config.ensure_dirs()
+    dest = config.DATA_DIR / "uploaded_cv.docx"
+    dest.write_bytes(data)
+
+    try:
+        structured = await asyncio.to_thread(resume_parser.parse_and_cache, dest)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not parse CV: {exc}")
+
+    profile = await asyncio.to_thread(config.autofill_profile_from_resume, structured)
+    await hub.broadcast({"type": "resume_uploaded", "profile": profile})
+    notify.send("📄 CV uploaded and profile updated.")
+    return {
+        "source": structured.get("_source", "none"),
+        "skills_found": len(structured.get("skills", [])),
+        "profile": profile,
     }
 
 

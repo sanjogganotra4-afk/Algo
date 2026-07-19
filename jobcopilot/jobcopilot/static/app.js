@@ -210,6 +210,46 @@ async function saveProfile() {
   setTimeout(() => ($("#saveProfileBtn").textContent = "Save profile"), 1500);
 }
 
+// ── CV upload / onboarding ───────────────────────────────────────────────────
+let cvUploaded = false;
+async function loadCvStatus() {
+  const r = await api("/resume");
+  cvUploaded = r.source && r.source !== "none";
+  const s = $("#cvStatus");
+  if (s) {
+    s.textContent = cvUploaded
+      ? `CV parsed (${r.source}) — ${(r.skills || []).length} skills found. Profile auto-filled below.`
+      : "No CV uploaded yet.";
+  }
+  $("#onboard").classList.toggle("hidden", cvUploaded);
+}
+
+async function uploadCv() {
+  const input = $("#cvFile");
+  const f = input.files[0];
+  if (!f) return;
+  const btn = $("#uploadBtn");
+  btn.textContent = "Parsing…"; btn.disabled = true;
+  try {
+    const fd = new FormData();
+    fd.append("file", f);
+    const res = await fetch("/api/resume/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!res.ok) {
+      btn.textContent = data.detail || "Upload failed";
+    } else {
+      btn.textContent = `Parsed ✓ (${data.skills_found} skills)`;
+      input.value = "";
+      await loadProfile();
+      await loadCvStatus();
+      await refresh();
+    }
+  } catch (e) {
+    btn.textContent = "Upload failed";
+  }
+  setTimeout(() => { btn.textContent = "Upload & parse CV"; btn.disabled = false; }, 2200);
+}
+
 // ── search links ────────────────────────────────────────────────────────────
 async function loadLinks() {
   const dp = $("#datePosted").value;
@@ -248,6 +288,7 @@ function connect() {
     } else {
       // Any mutation event: cheap full refresh keeps the UI simple & correct.
       refresh();
+      if (msg.type === "resume_uploaded") loadCvStatus();
     }
   };
 }
@@ -259,10 +300,16 @@ document.querySelectorAll(".tabs button").forEach((btn) => {
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     btn.classList.add("active");
     $("#tab-" + btn.dataset.tab).classList.add("active");
-    if (btn.dataset.tab === "profile") loadProfile();
+    if (btn.dataset.tab === "profile") { loadProfile(); loadCvStatus(); }
     if (btn.dataset.tab === "search") loadLinks();
   };
 });
+
+function gotoProfile() {
+  document.querySelector('.tabs button[data-tab="profile"]').click();
+}
+$("#onboardGo").onclick = gotoProfile;
+$("#uploadBtn").onclick = uploadCv;
 
 $("#statusFilter").onchange = renderTable;
 $("#datePosted").onchange = loadLinks;
@@ -294,3 +341,4 @@ $("#killConfirm").onclick = () => { act("/kill"); $("#killModal").classList.add(
 
 connect();
 refresh();
+loadCvStatus();

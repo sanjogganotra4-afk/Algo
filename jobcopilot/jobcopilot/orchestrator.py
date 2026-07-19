@@ -37,10 +37,11 @@ def _print_qr(url: str) -> None:
 
 
 def main() -> None:
-    if not config.env_ready():
-        print("No profile.json found. Run the setup wizard first:")
-        print("  python -m jobcopilot.setup_wizard")
-        return
+    # No wizard required: the server bootstraps a default profile on startup,
+    # and the user uploads their CV + tunes the profile from the dashboard.
+    config.ensure_dirs()
+    config.ensure_profile()
+    first_run = not config.RESUME_STRUCTURED_PATH.exists()
 
     srv = config.server_settings()
     host, port = srv["host"], srv["port"]
@@ -57,7 +58,10 @@ def main() -> None:
         print(f"  On your iPad   : {lan_url}   (same Wi-Fi / Tailscale)")
         print("\n  Scan to open on iPad:")
         _print_qr(lan_url)
-    print("  Press Ctrl+C to stop.")
+    if first_run:
+        print("\n  First run: open the dashboard, go to the Profile tab, and")
+        print("  upload your .docx CV. Everything else fills in automatically.")
+    print("\n  Press Ctrl+C to stop.")
     print("=" * 60 + "\n")
 
     uvicorn.run("jobcopilot.server:app", host=host, port=port, log_level="info")
