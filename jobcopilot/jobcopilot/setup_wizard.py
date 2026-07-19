@@ -75,9 +75,10 @@ def run() -> None:
             print("You can re-run the wizard or run: python -m jobcopilot.resume_parser <cv.docx>")
 
     print("\nNext steps:")
-    print("  1. Copy .env.template to .env and add your ANTHROPIC_API_KEY.")
-    print("  2. Start the copilot:  python -m jobcopilot.orchestrator")
-    print("  3. Open the dashboard URL it prints (or add it to your iPad home screen).\n")
+    print("  1. Start the copilot:  python -m jobcopilot.orchestrator")
+    print("  2. Open the dashboard URL it prints (or add it to your iPad home screen).")
+    print("\nNo API key needed — it runs free and local by default.")
+    print("(Optional: copy .env.template to .env and add ANTHROPIC_API_KEY for AI mode.)\n")
 
 
 if __name__ == "__main__":

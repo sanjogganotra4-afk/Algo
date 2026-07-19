@@ -67,14 +67,21 @@ cd jobcopilot
    the Search tab immediately has pre-filtered LinkedIn links, and any job you add
    gets scored.
 
-### Optional: better scoring with an API key
+That's the whole setup — **it's free and needs no API key or account.** Everything
+(CV parsing, profile auto-fill, scoring, search links, cover-letter drafts) runs
+locally on your laptop using a built-in keyword-overlap engine. Nothing leaves the
+machine and there's nothing to sign up for.
 
-Works out of the box using a local keyword-overlap heuristic (nothing leaves the
-laptop). For much better scores and real cover letters, add a Claude key:
+### Optional upgrade (only if you want it)
+
+If you ever want sharper AI scoring and genuinely tailored cover letters, you can
+add a Claude API key — but it's entirely optional and off by default:
 
 ```bash
 cp .env.template .env          # then paste ANTHROPIC_API_KEY into .env
 ```
+
+The dashboard shows **Mode: Free** with no key, or **Mode: AI** once you add one.
 
 ### Optional: CLI wizard
 
@@ -134,11 +141,12 @@ switch engages. Leave them blank to disable.
 
 ## LLM & privacy
 
-- With `ANTHROPIC_API_KEY` set, scoring and cover letters use Claude
-  (`JOBCOPILOT_MODEL`, default `claude-opus-4-8`; set `claude-haiku-4-5` for
-  cheaper runs).
-- Without a key, everything still works via a local keyword-overlap heuristic —
-  rougher scores and template letters, but zero external calls.
+- **Free mode (default, no key):** everything works via a local keyword-overlap
+  engine — rougher scores and template letters, but zero external calls and
+  nothing to sign up for.
+- **AI mode (optional):** with `ANTHROPIC_API_KEY` set, scoring and cover letters
+  use Claude (`JOBCOPILOT_MODEL`, default `claude-opus-4-8`; set
+  `claude-haiku-4-5` for cheaper runs).
 - Only the **job description and your resume text** are ever sent to the LLM.
   Your `.env` secrets are never logged or transmitted anywhere else. `.env`,
   `profile.json`, `resume_structured.json`, and `applications.db` are gitignored.

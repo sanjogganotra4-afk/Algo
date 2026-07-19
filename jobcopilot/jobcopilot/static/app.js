@@ -30,7 +30,7 @@ function renderStats() {
     ["To review", (s.by_status && s.by_status.scored) || 0],
     ["Avg score", s.avg_score != null ? s.avg_score : "—"],
     ["Total", s.total ?? 0],
-    ["LLM", s.llm ? "on" : "off"],
+    ["Mode", s.llm ? "AI" : "Free"],
   ];
   $("#stats").innerHTML = "";
   items.forEach(([l, n]) => {
