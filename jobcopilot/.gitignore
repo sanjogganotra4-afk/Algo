@@ -1,0 +1,22 @@
+# Secrets & local state — never commit these
+.env
+.env.local
+
+# Generated data
+*.db
+*.db-journal
+KILL_SWITCH.flag
+logs/
+data/
+resume_structured.json
+profile.json
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# OS
+.DS_Store
+Thumbs.db

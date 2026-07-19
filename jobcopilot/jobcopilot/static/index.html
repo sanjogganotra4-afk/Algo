@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f1115" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>Job Copilot</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">✓ Job Copilot <span id="conn" class="dot" title="connection"></span></div>
+    <button id="killBtn" class="kill">STOP</button>
+  </header>
+
+  <div id="onboard" class="onboard hidden">
+    👋 Welcome! Upload your CV to get started →
+    <button id="onboardGo" class="linkbtn">Go to Profile</button>
+  </div>
+
+  <section class="stats" id="stats"></section>
+
+  <nav class="tabs">
+    <button data-tab="pending" class="active">Review</button>
+    <button data-tab="all">All jobs</button>
+    <button data-tab="search">Search</button>
+    <button data-tab="add">Add job</button>
+    <button data-tab="profile">Profile</button>
+  </nav>
+
+  <main>
+    <!-- Review: swipeable-ish cards awaiting your decision -->
+    <section id="tab-pending" class="tab active">
+      <div id="pendingCards" class="cards"></div>
+      <p id="pendingEmpty" class="empty">No jobs awaiting review. Add a job to get started.</p>
+    </section>
+
+    <!-- All jobs table -->
+    <section id="tab-all" class="tab">
+      <div class="filters">
+        <select id="statusFilter">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="scored">Scored</option>
+          <option value="applied">Applied</option>
+          <option value="skipped">Skipped</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table id="jobsTable">
+          <thead><tr>
+            <th>Score</th><th>Title</th><th>Company</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Search: pre-filtered LinkedIn links built from your profile -->
+    <section id="tab-search" class="tab">
+      <div class="filters searchbar">
+        <select id="datePosted">
+          <option value="24h">Past 24 hours</option>
+          <option value="week" selected>Past week</option>
+          <option value="month">Past month</option>
+          <option value="any">Any time</option>
+        </select>
+        <label class="chk"><input type="checkbox" id="remoteOnly" /> Remote only</label>
+      </div>
+      <p class="hint">Pre-filtered LinkedIn searches from your profile (titles, locations,
+        seniority). Tapping one opens LinkedIn in your browser — you browse and apply
+        yourself. Nothing here logs in or scrapes.</p>
+      <div id="searchLinks" class="linklist"></div>
+    </section>
+
+    <!-- Add job -->
+    <section id="tab-add" class="tab">
+      <div class="form">
+        <label>Title <input id="f-title" /></label>
+        <label>Company <input id="f-company" /></label>
+        <label>Location <input id="f-location" /></label>
+        <label>URL <input id="f-url" /></label>
+        <label>Job description
+          <textarea id="f-description" rows="10" placeholder="Paste the full job description here…"></textarea>
+        </label>
+        <button id="addBtn" class="primary">Add &amp; score</button>
+        <p class="hint">Paste a job description you found on LinkedIn (or anywhere). The
+          copilot scores it and drafts a cover letter — you apply yourself.</p>
+      </div>
+    </section>
+
+    <!-- Profile editor -->
+    <section id="tab-profile" class="tab">
+      <div class="card upload">
+        <h3>Your CV</h3>
+        <p class="rationale" id="cvStatus">No CV uploaded yet.</p>
+        <input type="file" id="cvFile" accept=".docx" />
+        <button id="uploadBtn" class="primary">Upload &amp; parse CV</button>
+        <p class="hint">Upload your <b>.docx</b> CV from this device. The copilot parses it
+          and auto-fills the profile below — name, title, skills, and target roles —
+          so you're ready in one step.</p>
+      </div>
+      <div class="form" id="profileForm"></div>
+      <button id="saveProfileBtn" class="primary">Save profile</button>
+    </section>
+  </main>
+
+  <!-- Detail modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <button id="modalClose" class="modal-close">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Kill confirm -->
+  <div id="killModal" class="modal hidden">
+    <div class="modal-box small">
+      <h3 id="killTitle">Stop the copilot?</h3>
+      <p id="killMsg">This pauses all background scoring immediately.</p>
+      <div class="modal-actions">
+        <button id="killCancel">Cancel</button>
+        <button id="killConfirm" class="kill">Confirm STOP</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
